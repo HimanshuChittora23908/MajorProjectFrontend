@@ -143,7 +143,7 @@ export default function App() {
         console.log(res);
         setExpGraph(res.data.expected_graph);
         setUploading(false);
-        getFarthestGraph();
+        getFarthestGraph(0);
       })
       .catch((err) => {
         console.log(err);
@@ -151,9 +151,9 @@ export default function App() {
       });
   };
 
-  const getFarthestGraph = () => {
+  const getFarthestGraph = (num) => {
     axios
-      .get("http://127.0.0.1:5000/getFarthestGraph?graph_id=" + graphId)
+      .get("http://127.0.0.1:5000/getFarthestGraph?graph_id=" + num)
       .then((res) => {
         console.log(res);
         setFarthestGraph(res.data.farthest_graph);
@@ -216,7 +216,7 @@ export default function App() {
                   .then((res) => {
                     console.log(res);
                     setGraphId(graphId + 1);
-                    getFarthestGraph();
+                    getFarthestGraph(graphId+1);
                   })
                   .catch((err) => {
                     console.log(err);
@@ -245,7 +245,7 @@ export default function App() {
               console.log('Subclustering')
               setResolved(true); // set resolved as true because we will now show the farthest graph of next cluster
               setGraphId(graphId + 1);
-              getFarthestGraph();
+              getFarthestGraph(graphId+1);
             }}
           >
             Yes
@@ -258,7 +258,7 @@ export default function App() {
                 .then((res) => {
                   console.log(res);
                   setGraphId(graphId + 1);
-                  getFarthestGraph();
+                  getFarthestGraph(graphId+1);
                 })
                 .catch((err) => {
                   console.log(err);
