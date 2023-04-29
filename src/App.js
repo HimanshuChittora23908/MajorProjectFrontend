@@ -25,10 +25,12 @@ ChartJS.register(
 export default function App() {
   const [file, setFile] = useState(null);
   const [csvData, setCsvData] = useState(null);
-  const [expGraph, setExpGraph] = useState(null);
+  const [expGraph, setExpGraph] = useState(null); // expected graph
   const [uploading, setUploading] = useState(false);
-  const [farthestGraph, setFarthestGraph] = useState(null);
-  const [graphId, setGraphId] = useState(0);
+  const [closestGraph, setClosestGraph] = useState(null); // closest graph for each cluster
+  const [farthestGraph, setFarthestGraph] = useState(null); // farthest graph for each cluster
+  const [graphId, setGraphId] = useState(0); // current cluster graphId
+  const [resolved, setResolved] = useState(true); // if the graph is resolved
 
   const options = {
     responsive: true,
@@ -74,7 +76,7 @@ export default function App() {
 
   const data = {
     labels,
-    datasets: [
+    datasets: resolved ? [
       {
         label: "Expected Graph",
         data: expGraph && csvData[expGraph].split(","),
@@ -86,6 +88,23 @@ export default function App() {
       {
         label: "Actual Graph (Cluster No.: " + graphId + ")",
         data: farthestGraph && csvData[farthestGraph].split(","),
+        borderColor: "rgb(53, 162, 235)",
+        backgroundColor: "rgb(53, 162, 235, 0.5)",
+        pointRadius: 0,
+        tension: 0.1,
+      },
+    ] : [
+      {
+        label: "Expected Graph",
+        data: expGraph && csvData[expGraph].split(","),
+        borderColor: "rgb(255, 99, 132)",
+        backgroundColor: "rgba(255, 99, 132, 0.5)",
+        pointRadius: 0,
+        tension: 0.1,
+      },
+      {
+        label: "Actual Graph (Cluster No.: " + graphId + ")",
+        data: closestGraph && csvData[closestGraph].split(","),
         borderColor: "rgb(53, 162, 235)",
         backgroundColor: "rgb(53, 162, 235, 0.5)",
         pointRadius: 0,
@@ -144,6 +163,19 @@ export default function App() {
       });
   };
 
+  const getClosestGraph = () => {
+    axios
+      .get("http://127.0.0.1:5000/getClosestGraph?graph_id=" + graphId)
+      .then((res) => {
+        console.log(res);
+        setClosestGraph(res.data.closest_graph);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+
   return (
     <div className="flex flex-col gap-y-2 py-16 items-center justify-center min-h-screen">
       <p>Please select a csv file to upload</p>
@@ -159,19 +191,21 @@ export default function App() {
         {uploading ? "Uploading..." : "Upload"}
       </button>
       <div className="flex w-full mt-8 gap-8 justify-center items-center px-40">
-        {expGraph && farthestGraph && (
+        {resolved && expGraph && farthestGraph && (
           <span className="w-full">
             <Line options={options} data={data} className="h-full" />
           </span>
         )}
-        {/* {farthestGraph && (
+        {!resolved && expGraph && closestGraph && (
           <span className="w-full">
-            <Line options={actualGraphOptions} data={actualGraphData} />
+            <Line options={options} data={data} className="h-full" />
           </span>
-        )} */}
+        )}
+
       </div>
-      {expGraph && farthestGraph && (
-        <div className="flex flex-col gap-y-2 my-8 items-center justify-center">
+      
+      {resolved && expGraph && farthestGraph && (
+        <div className={`flex flex-col gap-y-2 my-8 items-center justify-center`}>
           <p>Does the actual graph match the expected graph?</p>
           <div className="flex items-center justify-center gap-8">
             <button
@@ -191,14 +225,49 @@ export default function App() {
             >
               Yes
             </button>
-            <button className="bg-red-500 hover:bg-red-700 text-white font-semibold py-1 px-4 rounded">
+            <button className="bg-red-500 hover:bg-red-700 text-white font-semibold py-1 px-4 rounded"
+              onClick={() => {
+                setResolved(false); // set resolved as false because we will now show the closest graph of same cluster
+                getClosestGraph();
+              }}>
               No
-            </button>
-            <button className="bg-yellow-500 hover:bg-yellow-700 text-white font-semibold py-1 px-4 rounded">
-              Not Sure
             </button>
           </div>
         </div>
+      )}
+      {!resolved && expGraph && closestGraph && (
+        <div className={`flex flex-col gap-y-2 my-8 items-center justify-center`}>
+        <p>Does the actual graph match the expected graph?</p>
+        <div className="flex items-center justify-center gap-8">
+          <button
+            className="bg-green-500 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded"
+            onClick={() => {
+              console.log('Subclustering')
+              setResolved(true); // set resolved as true because we will now show the farthest graph of next cluster
+              setGraphId(graphId + 1);
+              getFarthestGraph();
+            }}
+          >
+            Yes
+          </button>
+          <button className="bg-red-500 hover:bg-red-700 text-white font-semibold py-1 px-4 rounded"
+            onClick={() => {
+              setResolved(true); // set resolved as true because we will now show the farthest graph of next cluster
+              axios
+                .get("http://127.0.0.1:5000/labelFalse?graph_id=" + graphId)
+                .then((res) => {
+                  console.log(res);
+                  setGraphId(graphId + 1);
+                  getFarthestGraph();
+                })
+                .catch((err) => {
+                  console.log(err);
+                });
+            }}>
+            No
+          </button>
+        </div>
+      </div>
       )}
     </div>
   );
