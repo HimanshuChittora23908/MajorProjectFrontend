@@ -28,7 +28,7 @@ export default function App() {
   const [expGraph, setExpGraph] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [farthestGraph, setFarthestGraph] = useState(null);
-  const [graphId, setGraphId] = useState(1);
+  const [graphId, setGraphId] = useState(0);
 
   const options = {
     responsive: true,
@@ -145,7 +145,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col gap-y-2 items-center justify-center min-h-screen">
+    <div className="flex flex-col gap-y-2 py-16 items-center justify-center min-h-screen">
       <p>Please select a csv file to upload</p>
       <input
         type="file"
@@ -158,7 +158,7 @@ export default function App() {
       >
         {uploading ? "Uploading..." : "Upload"}
       </button>
-      <div className="flex w-full gap-8 justify-center items-center px-40">
+      <div className="flex w-full mt-8 gap-8 justify-center items-center px-40">
         {expGraph && farthestGraph && (
           <span className="w-full">
             <Line options={options} data={data} className="h-full" />
@@ -170,6 +170,36 @@ export default function App() {
           </span>
         )} */}
       </div>
+      {expGraph && farthestGraph && (
+        <div className="flex flex-col gap-y-2 my-8 items-center justify-center">
+          <p>Does the actual graph match the expected graph?</p>
+          <div className="flex items-center justify-center gap-8">
+            <button
+              className="bg-green-500 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded"
+              onClick={() => {
+                axios
+                  .get("http://127.0.0.1:5000/labelTrue?graph_id=" + graphId)
+                  .then((res) => {
+                    console.log(res);
+                    setGraphId(graphId + 1);
+                    getFarthestGraph();
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                  });
+              }}
+            >
+              Yes
+            </button>
+            <button className="bg-red-500 hover:bg-red-700 text-white font-semibold py-1 px-4 rounded">
+              No
+            </button>
+            <button className="bg-yellow-500 hover:bg-yellow-700 text-white font-semibold py-1 px-4 rounded">
+              Not Sure
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
