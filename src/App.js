@@ -151,6 +151,16 @@ export default function App() {
       });
   };
 
+  const furtherCluster = (graphId) => {
+    axios.post("http://127.0.0.1:5000/furtherCluster?cluster_no=" + graphId)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
   const getFarthestGraph = (num) => {
     axios
       .get("http://127.0.0.1:5000/getFarthestGraph?graph_id=" + num)
@@ -243,6 +253,7 @@ export default function App() {
             className="bg-green-500 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded"
             onClick={() => {
               console.log('Subclustering')
+              furtherCluster(graphId) // further cluster the cluster with graphId
               setResolved(true); // set resolved as true because we will now show the farthest graph of next cluster
               setGraphId(graphId + 1);
               getFarthestGraph(graphId+1);
