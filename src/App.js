@@ -255,8 +255,7 @@ export default function App() {
               console.log('Subclustering')
               furtherCluster(graphId) // further cluster the cluster with graphId
               setResolved(true); // set resolved as true because we will now show the farthest graph of next cluster
-              setGraphId(graphId + 1);
-              getFarthestGraph(graphId+1);
+              getFarthestGraph(graphId);
             }}
           >
             Yes
