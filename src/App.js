@@ -11,6 +11,7 @@ import {
   Legend,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
+import { CSVLink } from "react-csv";
 
 ChartJS.register(
   CategoryScale,
@@ -33,6 +34,7 @@ export default function App() {
   const [farthestGraph, setFarthestGraph] = useState(null); // farthest graph for each cluster
   const [graphId, setGraphId] = useState(0); // current cluster graphId
   const [resolved, setResolved] = useState(true); // if the graph is resolved
+  const [downloadData, setDownloadData] = useState([]); // data to be downloaded
 
   const options = {
     responsive: true,
@@ -41,6 +43,30 @@ export default function App() {
         position: "top",
       },
     },
+  };
+
+  const headers = [
+    { label: "Well ID", key: "wellId" },
+    { label: "Label", key: "label" },
+  ];
+
+  const generateJSON = (data) => {
+
+    let labels = data.labels
+    let cluster_id = data.cluster_id
+
+    let obj = []
+    for(let i=0;i<cluster_id.length;i++){
+        obj.push({obj: i, label: labels[cluster_id[i]]})
+    }
+
+    return obj
+  }
+
+  const csvReport = {
+    data: downloadData,
+    headers: headers,
+    filename: 'Results.csv'
   };
 
   // Read the csv file
@@ -168,36 +194,36 @@ export default function App() {
   return (
     <div className="flex flex-col gap-y-2 py-8 mx-32 items-center justify-center min-h-screen">
       {!removeUploadButton && (
-        <div class="flex items-center justify-center w-1/2">
+        <div className="flex items-center justify-center w-1/2">
           <label
-            for="dropzone-file"
-            class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-500 border-dashed rounded-lg cursor-pointer bg-gray-100 dark:hover:bg-bray-800 hover:bg-gray-200"
+            htmlFor="dropzone-file"
+            className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-500 border-dashed rounded-lg cursor-pointer bg-gray-100 dark:hover:bg-bray-800 hover:bg-gray-200"
           >
-            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
               <svg
                 aria-hidden="true"
-                class="w-10 h-10 mb-3 text-gray-500"
+                className="w-10 h-10 mb-3 text-gray-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                 ></path>
               </svg>
-              <p class="mb-2 text-sm text-gray-500">
-                <span class="font-semibold">Click to upload</span> or drag and
+              <p className="mb-2 text-sm text-gray-500">
+                <span className="font-semibold">Click to upload</span> or drag and
                 drop
               </p>
-              <p class="text-xs mb-2 text-gray-500">
+              <p className="text-xs mb-2 text-gray-500">
                 Only CSV files are allowed
               </p>
               {file && (
-                <p class="text-sm font-semibold text-gray-700">
+                <p className="text-sm font-semibold text-gray-700">
                   Uploaded: {file.name}
                 </p>
               )}
@@ -205,7 +231,7 @@ export default function App() {
             <input
               id="dropzone-file"
               type="file"
-              class="hidden"
+              className="hidden"
               accept=".csv"
               onChange={(e) => setFile(e.target.files[0])}
             />
@@ -314,13 +340,17 @@ export default function App() {
             onClick={() => {
               axios.get("http://127.0.0.1:5000/getLabelGraphId").then((res) => {
                 console.log(res);
+                setDownloadData(generateJSON(res.data));
               });
             }}
           >
-            Download Results
+            Generate File
           </button>
         </div>
       )}
+      <div className="flex flex-col gap-y-2 my-8 items-center justify-center">
+        <CSVLink {...csvReport}>Export to CSV</CSVLink>
+      </div>
       {/* Reset Button */}
       {uploaded && (
         <button
