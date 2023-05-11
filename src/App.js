@@ -33,7 +33,6 @@ export default function App() {
   const [farthestGraph, setFarthestGraph] = useState(null); // farthest graph for each cluster
   const [graphId, setGraphId] = useState(0); // current cluster graphId
   const [resolved, setResolved] = useState(true); // if the graph is resolved
-  const [finished, setFinished] = useState(false); // if the labelling is finished
 
   const options = {
     responsive: true,
@@ -62,7 +61,7 @@ export default function App() {
     }
   }, [file]);
 
-  const labels = expGraph && csvData[expGraph].split(",").map((_, i) => i);
+  const labels = expGraph && csvData[expGraph]?.split(",").map((_, i) => i);
 
   const data = {
     labels,
@@ -70,7 +69,7 @@ export default function App() {
       ? [
           {
             label: "Expected Graph",
-            data: expGraph && csvData[expGraph].split(","),
+            data: expGraph && csvData[expGraph]?.split(","),
             borderColor: "rgb(34,139,34)",
             backgroundColor: "rgba(34,139,34, 0.5)",
             pointRadius: 0,
@@ -78,7 +77,7 @@ export default function App() {
           },
           {
             label: "Actual Graph (Cluster No.: " + graphId + ")",
-            data: farthestGraph && csvData[farthestGraph].split(","),
+            data: farthestGraph && csvData[farthestGraph]?.split(","),
             borderColor: "rgb(255, 99, 132)",
             backgroundColor: "rgba(255, 99, 132, 0.5)",
             pointRadius: 0,
@@ -88,7 +87,7 @@ export default function App() {
       : [
           {
             label: "Expected Graph",
-            data: expGraph && csvData[expGraph].split(","),
+            data: expGraph && csvData[expGraph]?.split(","),
             borderColor: "rgb(255, 99, 132)",
             backgroundColor: "rgba(255, 99, 132, 0.5)",
             pointRadius: 0,
@@ -96,7 +95,7 @@ export default function App() {
           },
           {
             label: "Actual Graph (Cluster No.: " + graphId + ")",
-            data: closestGraph && csvData[closestGraph].split(","),
+            data: closestGraph && csvData[closestGraph]?.split(","),
             borderColor: "rgb(53, 162, 235)",
             backgroundColor: "rgb(53, 162, 235, 0.5)",
             pointRadius: 0,
@@ -222,19 +221,19 @@ export default function App() {
         </button>
       )}
       <div className="flex w-full mt-8 gap-8 justify-center items-center px-40">
-        {resolved && expGraph && farthestGraph && (
+        {resolved && expGraph && farthestGraph && farthestGraph !== -1 && (
           <span className="w-full">
             <Line options={options} data={data} className="h-full" />
           </span>
         )}
-        {!resolved && expGraph && closestGraph && (
+        {!resolved && expGraph && closestGraph && closestGraph !== -1 && (
           <span className="w-full">
             <Line options={options} data={data} className="h-full" />
           </span>
         )}
       </div>
 
-      {resolved && expGraph && farthestGraph && (
+      {resolved && expGraph && farthestGraph && farthestGraph !== -1 && (
         <div
           className={`flex flex-col gap-y-2 my-8 items-center justify-center`}
         >
@@ -269,7 +268,7 @@ export default function App() {
           </div>
         </div>
       )}
-      {!resolved && expGraph && closestGraph && (
+      {!resolved && expGraph && closestGraph && closestGraph !== -1 && (
         <div
           className={`flex flex-col gap-y-2 my-8 items-center justify-center`}
         >
@@ -307,6 +306,21 @@ export default function App() {
           </div>
         </div>
       )}
+      {(farthestGraph === -1 || closestGraph === -1) && (
+        <div className="flex flex-col gap-y-2 my-8 items-center justify-center">
+          <p>Results are ready!</p>
+          <button
+            className="bg-green-500 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded"
+            onClick={() => {
+              axios.get("http://127.0.0.1:5000/getLabelGraphId").then((res) => {
+                console.log(res);
+              });
+            }}
+          >
+            Download Results
+          </button>
+        </div>
+      )}
       {/* Reset Button */}
       {uploaded && (
         <button
@@ -320,7 +334,6 @@ export default function App() {
             setClosestGraph(null);
             setFarthestGraph(null);
             setResolved(true);
-            setFinished(false);
           }}
         >
           Wanna try again? Click here to reset
