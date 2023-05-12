@@ -57,6 +57,9 @@ export default function App() {
 
     let obj = []
     for(let i=0;i<cluster_id.length;i++){
+      if(cluster_id[i] === -1)
+        obj.push({obj: i, label: -1})
+      else
         obj.push({obj: i, label: labels[cluster_id[i]]})
     }
 
