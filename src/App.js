@@ -35,8 +35,18 @@ export default function App() {
   const [graphId, setGraphId] = useState(0); // current cluster graphId
   const [resolved, setResolved] = useState(true); // if the graph is resolved
   const [downloadData, setDownloadData] = useState([]); // data to be downloaded
+  const [generated, setGenerated] = useState(false); // if the result file is generated
+  const [questionsAnswered, setQuestionsAnswered] = useState(0); // number of questions answered
+  const [numClusters, setNumClusters] = useState(8); // hardcoded for now, change once the backend is changed.
 
   const options = {
+    scales: {
+      y:  {
+        beginAtZero: true,
+        min: 0,
+        max: 1400,
+      }
+    },
     responsive: true,
     plugins: {
       legend: {
@@ -117,16 +127,16 @@ export default function App() {
           {
             label: "Expected Graph",
             data: expGraph && csvData[expGraph]?.split(","),
-            borderColor: "rgb(255, 99, 132)",
-            backgroundColor: "rgba(255, 99, 132, 0.5)",
+            borderColor: "rgb(34,139,34)",
+            backgroundColor: "rgba(34,139,34, 0.5)",
             pointRadius: 0,
             tension: 0.1,
           },
           {
             label: "Actual Graph (Cluster No.: " + graphId + ")",
             data: closestGraph && csvData[closestGraph]?.split(","),
-            borderColor: "rgb(53, 162, 235)",
-            backgroundColor: "rgb(53, 162, 235, 0.5)",
+            borderColor: "rgb(255, 99, 132)",
+            backgroundColor: "rgba(255, 99, 132, 0.5)",
             pointRadius: 0,
             tension: 0.1,
           },
@@ -249,6 +259,23 @@ export default function App() {
           {uploading ? "Uploading..." : "Upload"}
         </button>
       )}
+
+      {/* Create a centered div displaying the no. of questions answered */}
+      {uploaded && (
+        <div className="flex flex-row gap-12 items-center justify-center gap-y-2">
+        <div>
+          <h1>No. of questions answered</h1>
+          <p className={`text-center ${(farthestGraph === -1 || closestGraph === -1) && `text-xl font-bold`}`}>{questionsAnswered}</p>
+        </div>
+        <div>
+          <h1>No. of clusters</h1>
+          <p className={`text-center ${(farthestGraph === -1 || closestGraph === -1) && `text-xl font-bold`}`}>{numClusters}</p>
+        </div>
+        </div>
+      )}
+              
+
+
       <div className="flex w-full mt-8 gap-8 justify-center items-center px-40">
         {resolved && expGraph && farthestGraph && farthestGraph !== -1 && (
           <span className="w-full">
@@ -281,6 +308,7 @@ export default function App() {
                   .catch((err) => {
                     console.log(err);
                   });
+                  setQuestionsAnswered(questionsAnswered + 1);
               }}
             >
               Yes
@@ -290,6 +318,7 @@ export default function App() {
               onClick={() => {
                 setResolved(false); // set resolved as false because we will now show the closest graph of same cluster
                 getClosestGraph();
+                setQuestionsAnswered(questionsAnswered + 1);
               }}
             >
               No
@@ -307,6 +336,8 @@ export default function App() {
               className="bg-green-500 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded"
               onClick={() => {
                 console.log("Subclustering");
+                setQuestionsAnswered(questionsAnswered + 1);
+                setNumClusters(numClusters + 1); // increment the number of clusters
                 furtherCluster(graphId); // further cluster the cluster with graphId
                 setResolved(true); // set resolved as true because we will now show the farthest graph of next cluster
                 getFarthestGraph(graphId);
@@ -318,6 +349,7 @@ export default function App() {
               className="bg-red-500 hover:bg-red-700 text-white font-semibold py-1 px-4 rounded"
               onClick={() => {
                 setResolved(true); // set resolved as true because we will now show the farthest graph of next cluster
+                setQuestionsAnswered(questionsAnswered + 1);
                 axios
                   .get("http://127.0.0.1:5000/labelFalse?graph_id=" + graphId)
                   .then((res) => {
@@ -335,15 +367,16 @@ export default function App() {
           </div>
         </div>
       )}
-      {(farthestGraph === -1 || closestGraph === -1) && (
+      {!generated && (farthestGraph === -1 || closestGraph === -1) && (
         <div className="flex flex-col gap-y-2 my-8 items-center justify-center">
           <p>Results are ready!</p>
           <button
-            className="bg-green-500 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded"
+            className="bg-green-500 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md"
             onClick={() => {
               axios.get("http://127.0.0.1:5000/getLabelGraphId").then((res) => {
                 console.log(res);
                 setDownloadData(generateJSON(res.data));
+                setGenerated(true);
               });
             }}
           >
@@ -351,9 +384,12 @@ export default function App() {
           </button>
         </div>
       )}
-      <div className="flex flex-col gap-y-2 my-8 items-center justify-center">
+      {generated && (
+        <div className="flex flex-col gap-y-2 mb-8 items-center justify-center rounded-md px-4 py-2 bg-green-500 hover:bg-green-700 text-white font-semibold">
         <CSVLink {...csvReport}>Export to CSV</CSVLink>
       </div>
+      )}
+
       {/* Reset Button */}
       {uploaded && (
         <button
@@ -367,6 +403,9 @@ export default function App() {
             setClosestGraph(null);
             setFarthestGraph(null);
             setResolved(true);
+            setGenerated(false);
+            setQuestionsAnswered(0);
+            setNumClusters(8); // hard coded for now, change once the backend has changed.
           }}
         >
           Wanna try again? Click here to reset
