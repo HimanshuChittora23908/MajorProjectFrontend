@@ -51,25 +51,22 @@ export default function App() {
   ];
 
   const generateJSON = (data) => {
+    let labels = data.labels;
+    let cluster_id = data.cluster_id;
 
-    let labels = data.labels
-    let cluster_id = data.cluster_id
-
-    let obj = []
-    for(let i=0;i<cluster_id.length;i++){
-      if(cluster_id[i] === -1)
-        obj.push({obj: i, label: -1})
-      else
-        obj.push({obj: i, label: labels[cluster_id[i]]})
+    let obj = [];
+    for (let i = 0; i < cluster_id.length; i++) {
+      if (cluster_id[i] === -1) obj.push({ obj: i, label: -1 });
+      else obj.push({ obj: i, label: labels[cluster_id[i]] });
     }
 
-    return obj
-  }
+    return obj;
+  };
 
   const csvReport = {
     data: downloadData,
     headers: headers,
-    filename: 'Results.csv'
+    filename: "Results.csv",
   };
 
   // Read the csv file
@@ -147,7 +144,6 @@ export default function App() {
         },
       })
       .then((res) => {
-        console.log(res);
         setUploaded(true);
         setExpGraph(res.data.expected_graph);
         setUploading(false);
@@ -162,9 +158,7 @@ export default function App() {
   const furtherCluster = (graphId) => {
     axios
       .post("http://127.0.0.1:5000/furtherCluster?cluster_no=" + graphId)
-      .then((res) => {
-        console.log(res);
-      })
+      .then((res) => {})
       .catch((err) => {
         console.log(err);
       });
@@ -174,7 +168,6 @@ export default function App() {
     axios
       .get("http://127.0.0.1:5000/getFarthestGraph?graph_id=" + num)
       .then((res) => {
-        console.log(res);
         setFarthestGraph(res.data.farthest_graph);
       })
       .catch((err) => {
@@ -186,7 +179,6 @@ export default function App() {
     axios
       .get("http://127.0.0.1:5000/getClosestGraph?graph_id=" + graphId)
       .then((res) => {
-        console.log(res);
         setClosestGraph(res.data.closest_graph);
       })
       .catch((err) => {
@@ -219,8 +211,8 @@ export default function App() {
                 ></path>
               </svg>
               <p className="mb-2 text-sm text-gray-500">
-                <span className="font-semibold">Click to upload</span> or drag and
-                drop
+                <span className="font-semibold">Click to upload</span> or drag
+                and drop
               </p>
               <p className="text-xs mb-2 text-gray-500">
                 Only CSV files are allowed
@@ -274,7 +266,6 @@ export default function App() {
                 axios
                   .get("http://127.0.0.1:5000/labelTrue?graph_id=" + graphId)
                   .then((res) => {
-                    console.log(res);
                     setGraphId(graphId + 1);
                     getFarthestGraph(graphId + 1);
                   })
@@ -306,7 +297,6 @@ export default function App() {
             <button
               className="bg-green-500 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded"
               onClick={() => {
-                console.log("Subclustering");
                 furtherCluster(graphId); // further cluster the cluster with graphId
                 setResolved(true); // set resolved as true because we will now show the farthest graph of next cluster
                 getFarthestGraph(graphId);
@@ -342,18 +332,14 @@ export default function App() {
             className="bg-green-500 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded"
             onClick={() => {
               axios.get("http://127.0.0.1:5000/getLabelGraphId").then((res) => {
-                console.log(res);
                 setDownloadData(generateJSON(res.data));
               });
             }}
           >
-            Generate File
+            <CSVLink {...csvReport}>Export to CSV</CSVLink>
           </button>
         </div>
       )}
-      <div className="flex flex-col gap-y-2 my-8 items-center justify-center">
-        <CSVLink {...csvReport}>Export to CSV</CSVLink>
-      </div>
       {/* Reset Button */}
       {uploaded && (
         <button
