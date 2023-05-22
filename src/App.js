@@ -39,6 +39,11 @@ export default function App() {
   const [generated, setGenerated] = useState(false); // if the result file is generated
   const [questionsAnswered, setQuestionsAnswered] = useState(0); // number of questions answered
   const [numClusters, setNumClusters] = useState(3); // hardcoded for now, change once the backend is changed.
+  const [peaks, setPeaks] = useState([]); // peaks
+  const [peakHeights, setPeakHeights] = useState([]); // peak heights
+  const [valleys, setValleys] = useState([]); // valleys
+  const [valleyHeights, setValleyHeights] = useState([]); // valley heights
+  const [euclideanDistance, setEuclideanDistance] = useState(0); // euclidean distance
 
   const options = {
     scales: {
@@ -180,6 +185,11 @@ export default function App() {
       .get("http://127.0.0.1:5000/getFarthestGraph?graph_id=" + num)
       .then((res) => {
         setFarthestGraph(res.data.farthest_graph);
+        setPeaks(res.data.peaks);
+        setPeakHeights(res.data.peak_heights);
+        setValleys(res.data.valleys);
+        setValleyHeights(res.data.valley_heights);
+        setEuclideanDistance(res.data.euclidean_dist);
         setLoading(false);
       })
       .catch((err) => {
@@ -192,6 +202,11 @@ export default function App() {
       .get("http://127.0.0.1:5000/getClosestGraph?graph_id=" + graphId)
       .then((res) => {
         setClosestGraph(res.data.closest_graph);
+        setPeaks(res.data.peaks);
+        setPeakHeights(res.data.peak_heights);
+        setValleys(res.data.valleys);
+        setValleyHeights(res.data.valley_heights);
+        setEuclideanDistance(res.data.euclidean_dist);
         setLoading(false);
       })
       .catch((err) => {
@@ -282,6 +297,64 @@ export default function App() {
                   {numClusters}
                 </p>
               </div>
+            </div>
+          )}
+
+          {uploaded && (
+            <div className="flex flex-col gap-x-2 items-center justify-center">
+              <h1>Peaks</h1>
+              <table className="table-auto">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2">Peak</th>
+                    <th className="px-4 py-2">Height</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {peaks.map((peak, index) => (
+                    <tr key={index}>
+                      <td className="border px-4 py-2">{peak}</td>
+                      <td className="border px-4 py-2">
+                        {peakHeights[index].toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {uploaded && (
+            <div className="flex flex-col gap-y-2 items-center justify-center">
+              <h1>Valleys</h1>
+              <table className="table-auto">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2">Valley</th>
+                    <th className="px-4 py-2">Height</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {valleys.map((valley, index) => (
+                    <tr key={index}>
+                      <td className="border px-4 py-2">{valley}</td>
+                      <td className="border px-4 py-2">
+                        {valleyHeights[index].toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Show the euclideanDistance between the two graphs stored in state */}
+          {uploaded && (
+            <div className="flex flex-col gap-y-2 items-center justify-center">
+              <h1>Euclidean Distance</h1>
+              <p className="text-center">
+                {euclideanDistance} (Lower is better)
+              </p>
             </div>
           )}
 
