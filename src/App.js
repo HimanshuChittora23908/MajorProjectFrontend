@@ -67,7 +67,7 @@ export default function App() {
   };
 
   const headers = [
-    { label: "Well ID", key: "wellId" },
+    { label: "Well ID", key: "obj" },
     { label: "Label", key: "label" },
   ];
 
@@ -283,30 +283,19 @@ export default function App() {
             </button>
           )}
 
-          
-          
-
           <div className="grid grid-cols-12 gap-16 w-full mt-8 justify-center items-center px-4">
-            
             <div className="col-span-8">
-
-            {uploaded && (
+              {uploaded && (
                 <div className="flex flex-row gap-12 items-center justify-center gap-y-2 pb-8 pt-2 bg-red-100 rounded-t-lg">
                   <div>
                     <h1 className="text-center font-bold">File Name</h1>
-                    <p
-                      className="text-center"
-                    >
-                      {file.name}
-                    </p>
+                    <p className="text-center">{file.name}</p>
                   </div>
                   <div>
-                    <h1 className="text-center font-bold">K used in clustering</h1>
-                    <p
-                      className="text-center"
-                    >
-                      {numClusters}
-                    </p>
+                    <h1 className="text-center font-bold">
+                      K used in clustering
+                    </h1>
+                    <p className="text-center">{numClusters}</p>
                   </div>
                 </div>
               )}
@@ -314,7 +303,9 @@ export default function App() {
               {uploaded && (
                 <div className="flex flex-row gap-12 items-center justify-center gap-y-2 pb-2 mb-8 bg-red-100 rounded-b-lg">
                   <div>
-                    <h1 className="text-center font-bold">No. of questions answered</h1>
+                    <h1 className="text-center font-bold">
+                      No. of questions answered
+                    </h1>
                     <p
                       className={`text-center ${
                         (farthestGraph === -1 || closestGraph === -1) &&
@@ -338,57 +329,64 @@ export default function App() {
                 </div>
               )}
 
-              {resolved && expGraph && farthestGraph && farthestGraph !== -1 && (
-                <span className="w-full">
-                  <Line options={options} data={data} className="h-full" />
-                </span>
-              )}
+              {resolved &&
+                expGraph &&
+                farthestGraph &&
+                farthestGraph !== -1 && (
+                  <span className="w-full">
+                    <Line options={options} data={data} className="h-full" />
+                  </span>
+                )}
               {!resolved && expGraph && closestGraph && closestGraph !== -1 && (
                 <span className="w-full">
                   <Line options={options} data={data} className="h-full" />
                 </span>
               )}
 
-              {resolved && expGraph && farthestGraph && farthestGraph !== -1 && (
-                <div
-                  className={`flex flex-col gap-y-2 my-8 items-center justify-center`}
-                >
-                  <p>Does the actual graph match the expected graph?</p>
-                  <div className="flex items-center justify-center gap-8">
-                    <button
-                      className="bg-green-500 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded"
-                      onClick={() => {
-                        axios
-                          .get(
-                            "http://127.0.0.1:5000/labelTrue?graph_id=" + graphId
-                          )
-                          .then((res) => {
-                            setGraphId(graphId + 1);
-                            setLoading(true);
-                            getFarthestGraph(graphId + 1);
-                          })
-                          .catch((err) => {
-                            console.log(err);
-                          });
-                        setQuestionsAnswered(questionsAnswered + 1);
-                      }}
-                    >
-                      Yes
-                    </button>
-                    <button
-                      className="bg-red-500 hover:bg-red-700 text-white font-semibold py-1 px-4 rounded"
-                      onClick={() => {
-                        setLoading(true);
-                        setResolved(false); // set resolved as false because we will now show the closest graph of same cluster
-                        getClosestGraph();
-                        setQuestionsAnswered(questionsAnswered + 1);
-                      }}
-                    >
-                      No
-                    </button>
+              {resolved &&
+                expGraph &&
+                farthestGraph &&
+                farthestGraph !== -1 && (
+                  <div
+                    className={`flex flex-col gap-y-2 my-8 items-center justify-center`}
+                  >
+                    <p>Does the actual graph match the expected graph?</p>
+                    <div className="flex items-center justify-center gap-8">
+                      <button
+                        className="bg-green-500 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded"
+                        onClick={() => {
+                          axios
+                            .get(
+                              "http://127.0.0.1:5000/labelTrue?graph_id=" +
+                                graphId
+                            )
+                            .then((res) => {
+                              setGraphId(graphId + 1);
+                              setLoading(true);
+                              getFarthestGraph(graphId + 1);
+                            })
+                            .catch((err) => {
+                              console.log(err);
+                            });
+                          setQuestionsAnswered(questionsAnswered + 1);
+                        }}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        className="bg-red-500 hover:bg-red-700 text-white font-semibold py-1 px-4 rounded"
+                        onClick={() => {
+                          setLoading(true);
+                          setResolved(false); // set resolved as false because we will now show the closest graph of same cluster
+                          getClosestGraph();
+                          setQuestionsAnswered(questionsAnswered + 1);
+                        }}
+                      >
+                        No
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
               {!resolved && expGraph && closestGraph && closestGraph !== -1 && (
                 <div
                   className={`flex flex-col gap-y-2 my-8 items-center justify-center`}
@@ -416,7 +414,8 @@ export default function App() {
                         setQuestionsAnswered(questionsAnswered + 1);
                         axios
                           .get(
-                            "http://127.0.0.1:5000/labelFalse?graph_id=" + graphId
+                            "http://127.0.0.1:5000/labelFalse?graph_id=" +
+                              graphId
                           )
                           .then((res) => {
                             console.log(res);
@@ -436,39 +435,44 @@ export default function App() {
               )}
 
               {/* center the csv button below */}
-              <div className="flex flex-col gap-y-2 items-center justify-center">
-                <button
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-1 px-4 rounded"
-                  onClick={() => {
-                    setFile(null);
-                    setUploaded(false);
+              {uploaded && (
+                <div className="flex flex-col gap-y-2 items-center justify-center">
+                  <button
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-1 px-4 rounded"
+                    onClick={() => {
+                      setFile(null);
+                      setUploaded(false);
 
-                    setRemoveUploadButton(false);
-                    setGraphId(0);
-                    setExpGraph(null);
-                    setClosestGraph(null);
-                    setFarthestGraph(null);
-                    setResolved(true);
-                    setGenerated(false);
-                    setQuestionsAnswered(0);
-                    setNumClusters(3); // hard coded for now, change once the backend has changed.
-                  }}
-                >
-                  Wanna try again? Click here to reset
-                </button>
-              </div>
-
-
-
-            
+                      setRemoveUploadButton(false);
+                      setGraphId(0);
+                      setExpGraph(null);
+                      setClosestGraph(null);
+                      setFarthestGraph(null);
+                      setResolved(true);
+                      setGenerated(false);
+                      setQuestionsAnswered(0);
+                      setNumClusters(3); // hard coded for now, change once the backend has changed.
+                      setGenerated(false);
+                      setDownloadData([]);
+                    }}
+                  >
+                    Wanna try again? Click here to reset
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="col-span-4">
-              <div className="flex flex-col gap-y-2 items-center justify-center bg-blue-100 rounded-xl p-2">
-                
+              <div
+                className={`flex flex-col gap-y-2 items-center justify-center bg-blue-100 rounded-xl ${
+                  uploaded && `p-2`
+                }`}
+              >
                 {uploaded && (
                   <>
-                    <h1 className="text-center font-bold text-green-600">Expected Graph</h1>
+                    <h1 className="text-center font-bold text-green-600">
+                      Expected Graph
+                    </h1>
 
                     <div className="grid grid-cols-2 justify-center text-center ">
                       <div className="col-span-1 flex flex-col gap-x-2 overflow-auto h-72 mb-8">
@@ -481,7 +485,7 @@ export default function App() {
                             </tr>
                           </thead>
                           <tbody>
-                            {peakReference.map((peak, index) => (
+                            {peakReference?.map((peak, index) => (
                               <tr key={index}>
                                 <td className="border px-4 py-2">{peak}</td>
                                 <td className="border px-4 py-2">
@@ -503,7 +507,7 @@ export default function App() {
                             </tr>
                           </thead>
                           <tbody>
-                            {valleyReference.map((valley, index) => (
+                            {valleyReference?.map((valley, index) => (
                               <tr key={index}>
                                 <td className="border px-4 py-2">{valley}</td>
                                 <td className="border px-4 py-2">
@@ -518,10 +522,11 @@ export default function App() {
                   </>
                 )}
 
-
                 {uploaded && (
                   <>
-                    <h1 className="text-center font-bold text-red-500">Actual Graph</h1>
+                    <h1 className="text-center font-bold text-red-500">
+                      Actual Graph
+                    </h1>
 
                     <div className="grid grid-cols-2 justify-center text-center ">
                       <div className="col-span-1 flex flex-col gap-x-2 overflow-auto h-72 mb-8">
@@ -534,7 +539,7 @@ export default function App() {
                             </tr>
                           </thead>
                           <tbody>
-                            {peaks.map((peak, index) => (
+                            {peaks?.map((peak, index) => (
                               <tr key={index}>
                                 <td className="border px-4 py-2">{peak}</td>
                                 <td className="border px-4 py-2">
@@ -556,7 +561,7 @@ export default function App() {
                             </tr>
                           </thead>
                           <tbody>
-                            {valleys.map((valley, index) => (
+                            {valleys?.map((valley, index) => (
                               <tr key={index}>
                                 <td className="border px-4 py-2">{valley}</td>
                                 <td className="border px-4 py-2">
@@ -582,25 +587,28 @@ export default function App() {
                 )}
               </div>
             </div>
-            
           </div>
 
-          
           {!generated && (farthestGraph === -1 || closestGraph === -1) && (
             <div className="flex flex-col gap-y-2 my-8 items-center justify-center">
               <p>Results are ready!</p>
               <button
                 className="bg-green-500 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md"
-                onClick={() => {
-                  axios
+                onClick={async () => {
+                  await axios
                     .get("http://127.0.0.1:5000/getLabelGraphId")
                     .then((res) => {
                       setDownloadData(generateJSON(res.data));
-                      setGenerated(true);
                     });
                 }}
               >
-                <CSVLink {...csvReport}>Export to CSV</CSVLink>
+                {downloadData.length > 0 ? (
+                  <CSVLink {...csvReport} onClick={() => setGenerated(true)}>
+                    Download Results
+                  </CSVLink>
+                ) : (
+                  "Generate Results"
+                )}
               </button>
             </div>
           )}
