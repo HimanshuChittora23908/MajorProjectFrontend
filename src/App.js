@@ -27,6 +27,7 @@ export default function App() {
   const [file, setFile] = useState(null);
   const [csvData, setCsvData] = useState(null);
   const [expGraph, setExpGraph] = useState(null); // expected graph
+  const [actualGraph, setActualGraph] = useState(null); // actual graph
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false); // loading for the graph
   const [removeUploadButton, setRemoveUploadButton] = useState(false);
@@ -43,6 +44,10 @@ export default function App() {
   const [peakHeights, setPeakHeights] = useState([]); // peak heights
   const [valleys, setValleys] = useState([]); // valleys
   const [valleyHeights, setValleyHeights] = useState([]); // valley heights
+  const [peakReference, setPeakReference] = useState([]); // peak reference
+  const [peakReferenceHeights, setPeakReferenceHeights] = useState([]); // peak reference heights
+  const [valleyReference, setValleyReference] = useState([]); // valley reference
+  const [valleyReferenceHeights, setValleyReferenceHeights] = useState([]); // valley reference heights
   const [euclideanDistance, setEuclideanDistance] = useState(0); // euclidean distance
 
   const options = {
@@ -110,7 +115,7 @@ export default function App() {
     datasets: resolved
       ? [
           {
-            label: "Expected Graph",
+            label: `Expected Graph: ${expGraph}`,
             data: expGraph && csvData[expGraph]?.split(","),
             borderColor: "rgb(34,139,34)",
             backgroundColor: "rgba(34,139,34, 0.5)",
@@ -118,7 +123,7 @@ export default function App() {
             tension: 0.1,
           },
           {
-            label: "Actual Graph (Cluster No.: " + graphId + ")",
+            label: `Actual Graph: ${actualGraph} (Cluster No.: " + graphId + ")`,
             data: farthestGraph && csvData[farthestGraph]?.split(","),
             borderColor: "rgb(255, 99, 132)",
             backgroundColor: "rgba(255, 99, 132, 0.5)",
@@ -128,7 +133,7 @@ export default function App() {
         ]
       : [
           {
-            label: "Expected Graph",
+            label: `Expected Graph ${expGraph}`,
             data: expGraph && csvData[expGraph]?.split(","),
             borderColor: "rgb(34,139,34)",
             backgroundColor: "rgba(34,139,34, 0.5)",
@@ -162,6 +167,10 @@ export default function App() {
       .then((res) => {
         setUploaded(true);
         setExpGraph(res.data.expected_graph);
+        setPeakReference(res.data.peaks);
+        setPeakReferenceHeights(res.data.peak_heights);
+        setValleyReference(res.data.valleys);
+        setValleyReferenceHeights(res.data.valley_heights);
         setUploading(false);
         getFarthestGraph(0);
       })
@@ -185,6 +194,7 @@ export default function App() {
       .get("http://127.0.0.1:5000/getFarthestGraph?graph_id=" + num)
       .then((res) => {
         setFarthestGraph(res.data.farthest_graph);
+        setActualGraph(res.data.farthest_graph);
         setPeaks(res.data.peaks);
         setPeakHeights(res.data.peak_heights);
         setValleys(res.data.valleys);
@@ -202,6 +212,7 @@ export default function App() {
       .get("http://127.0.0.1:5000/getClosestGraph?graph_id=" + graphId)
       .then((res) => {
         setClosestGraph(res.data.closest_graph);
+        setActualGraph(res.data.closest_graph);
         setPeaks(res.data.peaks);
         setPeakHeights(res.data.peak_heights);
         setValleys(res.data.valleys);
@@ -217,7 +228,7 @@ export default function App() {
   return (
     <div>
       {!loading ? (
-        <div className="flex flex-col gap-y-2 py-8 mx-16 items-center justify-center min-h-screen">
+        <div className="flex flex-col gap-y-2 py-8 mx-8 items-center justify-center min-h-screen">
           {!removeUploadButton && (
             <div className="flex items-center justify-center w-1/2">
               <label
@@ -272,190 +283,309 @@ export default function App() {
             </button>
           )}
 
-          {/* Create a centered div displaying the no. of questions answered */}
-          {uploaded && (
-            <div className="flex flex-row gap-12 items-center justify-center gap-y-2">
-              <div>
-                <h1>No. of questions answered</h1>
-                <p
-                  className={`text-center ${
-                    (farthestGraph === -1 || closestGraph === -1) &&
-                    `text-xl font-bold`
-                  }`}
+          
+          
+
+          <div className="grid grid-cols-12 gap-16 w-full mt-8 justify-center items-center px-4">
+            
+            <div className="col-span-8">
+
+            {uploaded && (
+                <div className="flex flex-row gap-12 items-center justify-center gap-y-2 pb-8 pt-2 bg-red-100 rounded-t-lg">
+                  <div>
+                    <h1 className="text-center font-bold">File Name</h1>
+                    <p
+                      className="text-center"
+                    >
+                      {file.name}
+                    </p>
+                  </div>
+                  <div>
+                    <h1 className="text-center font-bold">K used in clustering</h1>
+                    <p
+                      className="text-center"
+                    >
+                      {numClusters}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {uploaded && (
+                <div className="flex flex-row gap-12 items-center justify-center gap-y-2 pb-2 mb-8 bg-red-100 rounded-b-lg">
+                  <div>
+                    <h1 className="text-center font-bold">No. of questions answered</h1>
+                    <p
+                      className={`text-center ${
+                        (farthestGraph === -1 || closestGraph === -1) &&
+                        `text-xl font-bold`
+                      }`}
+                    >
+                      {questionsAnswered}
+                    </p>
+                  </div>
+                  <div>
+                    <h1 className="text-center font-bold">No. of clusters</h1>
+                    <p
+                      className={`text-center ${
+                        (farthestGraph === -1 || closestGraph === -1) &&
+                        `text-xl font-bold`
+                      }`}
+                    >
+                      {numClusters}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {resolved && expGraph && farthestGraph && farthestGraph !== -1 && (
+                <span className="w-full">
+                  <Line options={options} data={data} className="h-full" />
+                </span>
+              )}
+              {!resolved && expGraph && closestGraph && closestGraph !== -1 && (
+                <span className="w-full">
+                  <Line options={options} data={data} className="h-full" />
+                </span>
+              )}
+
+              {resolved && expGraph && farthestGraph && farthestGraph !== -1 && (
+                <div
+                  className={`flex flex-col gap-y-2 my-8 items-center justify-center`}
                 >
-                  {questionsAnswered}
-                </p>
-              </div>
-              <div>
-                <h1>No. of clusters</h1>
-                <p
-                  className={`text-center ${
-                    (farthestGraph === -1 || closestGraph === -1) &&
-                    `text-xl font-bold`
-                  }`}
+                  <p>Does the actual graph match the expected graph?</p>
+                  <div className="flex items-center justify-center gap-8">
+                    <button
+                      className="bg-green-500 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded"
+                      onClick={() => {
+                        axios
+                          .get(
+                            "http://127.0.0.1:5000/labelTrue?graph_id=" + graphId
+                          )
+                          .then((res) => {
+                            setGraphId(graphId + 1);
+                            setLoading(true);
+                            getFarthestGraph(graphId + 1);
+                          })
+                          .catch((err) => {
+                            console.log(err);
+                          });
+                        setQuestionsAnswered(questionsAnswered + 1);
+                      }}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      className="bg-red-500 hover:bg-red-700 text-white font-semibold py-1 px-4 rounded"
+                      onClick={() => {
+                        setLoading(true);
+                        setResolved(false); // set resolved as false because we will now show the closest graph of same cluster
+                        getClosestGraph();
+                        setQuestionsAnswered(questionsAnswered + 1);
+                      }}
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+              )}
+              {!resolved && expGraph && closestGraph && closestGraph !== -1 && (
+                <div
+                  className={`flex flex-col gap-y-2 my-8 items-center justify-center`}
                 >
-                  {numClusters}
-                </p>
+                  <p>Does the actual graph match the expected graph?</p>
+                  <div className="flex items-center justify-center gap-8">
+                    <button
+                      className="bg-green-500 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded"
+                      onClick={() => {
+                        console.log("Subclustering");
+                        setLoading(true);
+                        setQuestionsAnswered(questionsAnswered + 1);
+                        setNumClusters(numClusters + 1); // increment the number of clusters
+                        furtherCluster(graphId); // further cluster the cluster with graphId
+                        setResolved(true); // set resolved as true because we will now show the farthest graph of next cluster
+                        getFarthestGraph(graphId);
+                      }}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      className="bg-red-500 hover:bg-red-700 text-white font-semibold py-1 px-4 rounded"
+                      onClick={() => {
+                        setResolved(true); // set resolved as true because we will now show the farthest graph of next cluster
+                        setQuestionsAnswered(questionsAnswered + 1);
+                        axios
+                          .get(
+                            "http://127.0.0.1:5000/labelFalse?graph_id=" + graphId
+                          )
+                          .then((res) => {
+                            console.log(res);
+                            setLoading(true);
+                            setGraphId(graphId + 1);
+                            getFarthestGraph(graphId + 1);
+                          })
+                          .catch((err) => {
+                            console.log(err);
+                          });
+                      }}
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* center the csv button below */}
+              <div className="flex flex-col gap-y-2 items-center justify-center">
+                <button
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-1 px-4 rounded"
+                  onClick={() => {
+                    setFile(null);
+                    setUploaded(false);
+
+                    setRemoveUploadButton(false);
+                    setGraphId(0);
+                    setExpGraph(null);
+                    setClosestGraph(null);
+                    setFarthestGraph(null);
+                    setResolved(true);
+                    setGenerated(false);
+                    setQuestionsAnswered(0);
+                    setNumClusters(3); // hard coded for now, change once the backend has changed.
+                  }}
+                >
+                  Wanna try again? Click here to reset
+                </button>
+              </div>
+
+
+
+            
+            </div>
+
+            <div className="col-span-4">
+              <div className="flex flex-col gap-y-2 items-center justify-center bg-blue-100 rounded-xl p-2">
+                
+                {uploaded && (
+                  <>
+                    <h1 className="text-center font-bold text-green-600">Expected Graph</h1>
+
+                    <div className="grid grid-cols-2 justify-center text-center ">
+                      <div className="col-span-1 flex flex-col gap-x-2 overflow-auto h-72 mb-8">
+                        <h1 className="text-center font-bold">Peaks</h1>
+                        <table className="table-auto">
+                          <thead>
+                            <tr>
+                              <th className="px-4 py-2">Index</th>
+                              <th className="px-4 py-2">Height</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {peakReference.map((peak, index) => (
+                              <tr key={index}>
+                                <td className="border px-4 py-2">{peak}</td>
+                                <td className="border px-4 py-2">
+                                  {peakReferenceHeights[index].toFixed(2)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div className="col-span-1 flex flex-col gap-x-2 overflow-auto h-72">
+                        <h1 className="text-center font-bold">Valleys</h1>
+                        <table className="table-auto">
+                          <thead>
+                            <tr>
+                              <th className="px-4 py-2">Index</th>
+                              <th className="px-4 py-2">Depth</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {valleyReference.map((valley, index) => (
+                              <tr key={index}>
+                                <td className="border px-4 py-2">{valley}</td>
+                                <td className="border px-4 py-2">
+                                  {valleyReferenceHeights[index].toFixed(2)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+
+                {uploaded && (
+                  <>
+                    <h1 className="text-center font-bold text-red-500">Actual Graph</h1>
+
+                    <div className="grid grid-cols-2 justify-center text-center ">
+                      <div className="col-span-1 flex flex-col gap-x-2 overflow-auto h-72 mb-8">
+                        <h1 className="text-center font-bold">Peaks</h1>
+                        <table className="table-auto">
+                          <thead>
+                            <tr>
+                              <th className="px-4 py-2">Index</th>
+                              <th className="px-4 py-2">Height</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {peaks.map((peak, index) => (
+                              <tr key={index}>
+                                <td className="border px-4 py-2">{peak}</td>
+                                <td className="border px-4 py-2">
+                                  {peakHeights[index].toFixed(2)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div className="col-span-1 flex flex-col gap-x-2 overflow-auto h-72">
+                        <h1 className="text-center font-bold">Valleys</h1>
+                        <table className="table-auto">
+                          <thead>
+                            <tr>
+                              <th className="px-4 py-2">Index</th>
+                              <th className="px-4 py-2">Depth</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {valleys.map((valley, index) => (
+                              <tr key={index}>
+                                <td className="border px-4 py-2">{valley}</td>
+                                <td className="border px-4 py-2">
+                                  {valleyHeights[index].toFixed(2)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Show the euclideanDistance between the two graphs stored in state */}
+                {uploaded && (
+                  <div className="flex flex-col gap-y-2 items-center justify-center">
+                    <h1 className="font-bold">Euclidean Distance</h1>
+                    <p className="text-center font-semibold">
+                      {euclideanDistance}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
-          )}
-
-          {uploaded && (
-            <div className="flex flex-col gap-x-2 items-center justify-center">
-              <h1>Peaks</h1>
-              <table className="table-auto">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2">Peak</th>
-                    <th className="px-4 py-2">Height</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {peaks.map((peak, index) => (
-                    <tr key={index}>
-                      <td className="border px-4 py-2">{peak}</td>
-                      <td className="border px-4 py-2">
-                        {peakHeights[index].toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {uploaded && (
-            <div className="flex flex-col gap-y-2 items-center justify-center">
-              <h1>Valleys</h1>
-              <table className="table-auto">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2">Valley</th>
-                    <th className="px-4 py-2">Height</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {valleys.map((valley, index) => (
-                    <tr key={index}>
-                      <td className="border px-4 py-2">{valley}</td>
-                      <td className="border px-4 py-2">
-                        {valleyHeights[index].toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Show the euclideanDistance between the two graphs stored in state */}
-          {uploaded && (
-            <div className="flex flex-col gap-y-2 items-center justify-center">
-              <h1>Euclidean Distance</h1>
-              <p className="text-center">
-                {euclideanDistance} (Lower is better)
-              </p>
-            </div>
-          )}
-
-          <div className="flex w-full mt-8 gap-8 justify-center items-center px-40">
-            {resolved && expGraph && farthestGraph && farthestGraph !== -1 && (
-              <span className="w-full">
-                <Line options={options} data={data} className="h-full" />
-              </span>
-            )}
-            {!resolved && expGraph && closestGraph && closestGraph !== -1 && (
-              <span className="w-full">
-                <Line options={options} data={data} className="h-full" />
-              </span>
-            )}
+            
           </div>
 
-          {resolved && expGraph && farthestGraph && farthestGraph !== -1 && (
-            <div
-              className={`flex flex-col gap-y-2 my-8 items-center justify-center`}
-            >
-              <p>Does the actual graph match the expected graph?</p>
-              <div className="flex items-center justify-center gap-8">
-                <button
-                  className="bg-green-500 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded"
-                  onClick={() => {
-                    axios
-                      .get(
-                        "http://127.0.0.1:5000/labelTrue?graph_id=" + graphId
-                      )
-                      .then((res) => {
-                        setGraphId(graphId + 1);
-                        setLoading(true);
-                        getFarthestGraph(graphId + 1);
-                      })
-                      .catch((err) => {
-                        console.log(err);
-                      });
-                    setQuestionsAnswered(questionsAnswered + 1);
-                  }}
-                >
-                  Yes
-                </button>
-                <button
-                  className="bg-red-500 hover:bg-red-700 text-white font-semibold py-1 px-4 rounded"
-                  onClick={() => {
-                    setLoading(true);
-                    setResolved(false); // set resolved as false because we will now show the closest graph of same cluster
-                    getClosestGraph();
-                    setQuestionsAnswered(questionsAnswered + 1);
-                  }}
-                >
-                  No
-                </button>
-              </div>
-            </div>
-          )}
-          {!resolved && expGraph && closestGraph && closestGraph !== -1 && (
-            <div
-              className={`flex flex-col gap-y-2 my-8 items-center justify-center`}
-            >
-              <p>Does the actual graph match the expected graph?</p>
-              <div className="flex items-center justify-center gap-8">
-                <button
-                  className="bg-green-500 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded"
-                  onClick={() => {
-                    console.log("Subclustering");
-                    setLoading(true);
-                    setQuestionsAnswered(questionsAnswered + 1);
-                    setNumClusters(numClusters + 1); // increment the number of clusters
-                    furtherCluster(graphId); // further cluster the cluster with graphId
-                    setResolved(true); // set resolved as true because we will now show the farthest graph of next cluster
-                    getFarthestGraph(graphId);
-                  }}
-                >
-                  Yes
-                </button>
-                <button
-                  className="bg-red-500 hover:bg-red-700 text-white font-semibold py-1 px-4 rounded"
-                  onClick={() => {
-                    setResolved(true); // set resolved as true because we will now show the farthest graph of next cluster
-                    setQuestionsAnswered(questionsAnswered + 1);
-                    axios
-                      .get(
-                        "http://127.0.0.1:5000/labelFalse?graph_id=" + graphId
-                      )
-                      .then((res) => {
-                        console.log(res);
-                        setLoading(true);
-                        setGraphId(graphId + 1);
-                        getFarthestGraph(graphId + 1);
-                      })
-                      .catch((err) => {
-                        console.log(err);
-                      });
-                  }}
-                >
-                  No
-                </button>
-              </div>
-            </div>
-          )}
+          
           {!generated && (farthestGraph === -1 || closestGraph === -1) && (
             <div className="flex flex-col gap-y-2 my-8 items-center justify-center">
               <p>Results are ready!</p>
@@ -473,28 +603,6 @@ export default function App() {
                 <CSVLink {...csvReport}>Export to CSV</CSVLink>
               </button>
             </div>
-          )}
-
-          {/* Reset Button */}
-          {uploaded && (
-            <button
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-500 font-medium text-sm py-1 px-4 rounded -mt-4"
-              onClick={() => {
-                setFile(null);
-                setUploaded(false);
-                setRemoveUploadButton(false);
-                setGraphId(0);
-                setExpGraph(null);
-                setClosestGraph(null);
-                setFarthestGraph(null);
-                setResolved(true);
-                setGenerated(false);
-                setQuestionsAnswered(0);
-                setNumClusters(8); // hard coded for now, change once the backend has changed.
-              }}
-            >
-              Wanna try again? Click here to reset
-            </button>
           )}
         </div>
       ) : (
