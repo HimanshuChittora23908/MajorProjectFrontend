@@ -290,7 +290,7 @@ export default function App() {
             
             <div className="col-span-8">
 
-            {uploaded && (
+              {uploaded && (
                 <div className="flex flex-row gap-12 items-center justify-center gap-y-2 pb-8 pt-2 bg-red-100 rounded-t-lg">
                   <div>
                     <h1 className="text-center font-bold">File Name</h1>
@@ -436,7 +436,8 @@ export default function App() {
               )}
 
               {/* center the csv button below */}
-              <div className="flex flex-col gap-y-2 items-center justify-center">
+              {uploaded && (
+                <div className="flex flex-col gap-y-2 items-center justify-center">
                 <button
                   className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-1 px-4 rounded"
                   onClick={() => {
@@ -457,14 +458,12 @@ export default function App() {
                   Wanna try again? Click here to reset
                 </button>
               </div>
-
-
-
+              )}
             
             </div>
 
             <div className="col-span-4">
-              <div className="flex flex-col gap-y-2 items-center justify-center bg-blue-100 rounded-xl p-2">
+              <div className={`flex flex-col gap-y-2 items-center justify-center bg-blue-100 rounded-xl ${uploaded && `p-2`}`}>
                 
                 {uploaded && (
                   <>
